@@ -16,8 +16,13 @@ package clueGame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
+
+import experiment.TestBoardCell;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -31,6 +36,8 @@ public class Board {
 	private String setupConfigFile;
 
 	private Map<Character, Room> roomMap = new HashMap<>();
+	private Set<BoardCell> targets = new HashSet<>();
+	private Set<BoardCell> visited = new HashSet<>();
 
 	private static Board theInstance = new Board();
 
@@ -233,5 +240,17 @@ public class Board {
 
 	public Room getRoom(char initial) {
 		return roomMap.get(initial);
+	}
+
+	public Set<BoardCell> getAdjList(int i, int j) {
+		return new HashSet<>();
+	}
+
+	public void calcTargets(BoardCell cell, int i) {
+		targets = new HashSet<>();		
+	}
+
+	public Set<BoardCell> getTargets() {
+		return targets;
 	}
 }

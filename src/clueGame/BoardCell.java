@@ -27,6 +27,7 @@ public class BoardCell {
 
 	private boolean roomLabel;
 	private boolean roomCenter;
+	private boolean isOccupied = false;
 
 	private char secretPassage;
 
@@ -56,6 +57,10 @@ public class BoardCell {
 		} else
 			return true;
 	}
+	
+	public boolean isOccupied() {
+		return isOccupied;
+	}
 
 	public boolean isLabel() {
 		return roomLabel;
@@ -77,6 +82,14 @@ public class BoardCell {
 		return initial;
 	}
 
+	public void setOccupied(boolean isOccupied) {
+		this.isOccupied = isOccupied;
+	}
+	
+	public Set<BoardCell> getAdjList() {
+		return adjList;
+	}
+
 	public void setInitial(char initial) {
 		this.initial = initial;
 	}
@@ -96,4 +109,5 @@ public class BoardCell {
 	public void setSecretPassage(char secretPassage) {
 		this.secretPassage = secretPassage;
 	}
+	
 }
