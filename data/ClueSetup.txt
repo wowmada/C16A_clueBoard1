@@ -1,0 +1,13 @@
+// Mountain and Snow Resort Theme
+Room, Lift Station, L
+Room, Sauna, S
+Room, Ski Workshop, K
+Room, Lounge, G
+Room, Bedroom, B
+Room, Cabin, C
+Room, Dining Hall, D
+Room, Hot Springs, H
+Room, Control Tower, T
+// other spaces on board
+Space, Unused, X
+Space, Walkway, W
