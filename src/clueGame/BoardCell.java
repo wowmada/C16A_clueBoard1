@@ -29,6 +29,8 @@ public class BoardCell {
 	private boolean roomCenter;
 	private boolean isOccupied = false;
 	private boolean isRoom;
+	private boolean isUnused;
+	private boolean isDoorway = false;
 
 	private char secretPassage;
 
@@ -53,10 +55,7 @@ public class BoardCell {
 	}
 
 	public boolean isDoorway() {
-		if (doorDirection == DoorDirection.NONE) {
-			return false;
-		} else
-			return true;
+		return isDoorway;
 	}
 	
 	public boolean isOccupied() {
@@ -97,6 +96,7 @@ public class BoardCell {
 
 	public void setDoorDirection(DoorDirection doorDirection) {
 		this.doorDirection = doorDirection;
+		this.isDoorway = (doorDirection != DoorDirection.NONE);
 	}
 
 	public void setRoomLabel(boolean roomLabel) {
@@ -118,4 +118,25 @@ public class BoardCell {
 	public void setRoom(boolean isRoom) {
 		this.isRoom = isRoom;
 	}
+	
+	public boolean isUnused() {  // getter
+		return isUnused;
+	}
+
+	public void setUnused(boolean isUnused) { // setter
+	    this.isUnused = isUnused;
+	}
+
+	public void setAdjList(Set<BoardCell> adjList) { // setter for adjList
+	    this.adjList = adjList;
+	}
+
+	public void setDoorway(boolean isDoorway) {
+		this.isDoorway = isDoorway;
+        if (!isDoorway) {
+            this.doorDirection = DoorDirection.NONE; // keep consistent
+        }
+	}
+	
+	
 }

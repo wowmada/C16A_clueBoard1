@@ -53,6 +53,7 @@ public class Board {
 		try {
 			loadSetupConfig();
 			loadLayoutConfig();
+			calcAdjacencies();
 		}
 		catch(BadConfigFormatException e) {
 			System.out.println("Bad Configuration Error: " + e.getMessage());
@@ -175,22 +176,38 @@ public class Board {
 
 					BoardCell cell = new BoardCell(i, j);
 					cell.setInitial(initial);
+					
+					// Determine type of cell
+					if (initial == 'X' || initial == ' ') {
+					    cell.setUnused(true);
+					    cell.setRoom(false);
+					} else if (initial == 'W') {
+					    cell.setRoom(false);
+					    cell.setUnused(false);
+					} else {
+					    cell.setRoom(true);
+					    cell.setUnused(false);
+					}
 
 					if (cellCode.length() == 2) {
 						char symbol = cellCode.charAt(1);
 						switch (symbol) {
 						case '<':
 							cell.setDoorDirection(DoorDirection.LEFT);
+							cell.setDoorway(true);
 							break;
 						case '>':
 							cell.setDoorDirection(DoorDirection.RIGHT);
+							cell.setDoorway(true);
 							break;
 						case '^':
 							cell.setDoorDirection(DoorDirection.UP);
+							cell.setDoorway(true);
 							break;
 						case 'v':
 						case 'V': // this is for our ClueLayout *we use V
 							cell.setDoorDirection(DoorDirection.DOWN);
+							cell.setDoorway(true);
 							break;
 						case '#':
 							cell.setRoomLabel(true);
@@ -245,6 +262,160 @@ public class Board {
 	public Set<BoardCell> getAdjList(int row, int col) {
 		return grid[row][col].getAdjList();
 	}
+	
+	public void calcAdjacencies() {
+		for (int i = 0; i < numRows; i++) {
+			for (int j = 0; j < numColumns; j++) {
+				BoardCell cell = grid[i][j];
+
+				Set<BoardCell> adjList = new HashSet<>();
+
+				if (cell.isUnused()) {
+					cell.setAdjList(adjList);
+					continue;
+				}
+
+				// check UP
+				if (i > 0) {
+					BoardCell above = grid[i - 1][j];
+					validNeighbor(cell, above, adjList);
+				}
+
+				// check DOWN
+				if (i < numRows - 1) {
+					BoardCell below = grid[i + 1][j];
+					validNeighbor(cell, below, adjList);
+				}
+
+				// check LEFT
+				if (j > 0) {
+					BoardCell left = grid[i][j - 1];
+					validNeighbor(cell, left, adjList);
+				}
+
+				// check RIGHT
+				if (j < numColumns - 1) {
+					BoardCell right = grid[i][j + 1];
+					validNeighbor(cell, right, adjList);
+				}
+
+				cell.setAdjList(adjList);
+			}
+		}	
+	}
+	
+	/*
+	 *Used in calcAdjacencies to check for cases before adding to adj list
+	 *Cases include: walkways, doorway, and spaces like walls or nothing
+	 */
+	private void validNeighbor(BoardCell cell, BoardCell neighbor, Set<BoardCell> adjList) {
+		// Skip unused cells (blank or nothing cells)
+	    if (neighbor.isUnused()) return;
+	    
+	    // Negative means left or up, Positive means down or right
+	    int rowDiff = neighbor.getRow() - cell.getRow();
+	    int colDiff = neighbor.getCol() - cell.getCol();
+
+	    // If cell = walkway
+	    if (!cell.isRoom()) {
+	        // if cell's neighbor is also a walkway
+	        if (!neighbor.isRoom()) {
+	            adjList.add(neighbor);
+	        }
+	        // If cell is a walkway and connected to a door, make sure you can
+	        // only go in if the door is facing the walkway
+	        else if (neighbor.isDoorway()) {
+	            switch (neighbor.getDoorDirection()) {
+	                case UP:    
+	                	if (rowDiff == -1 && colDiff == 0) {
+	                		adjList.add(neighbor);
+	                	}
+	                	break;
+	                	
+	                case DOWN:  
+	                	if (rowDiff == 1  && colDiff == 0) {
+	                		adjList.add(neighbor); 
+	                	}
+	                	break;
+	                	
+	                case LEFT:  
+	                	if (rowDiff == 0  && colDiff == -1) {
+	                		adjList.add(neighbor); 
+	                	}
+	                	break;
+	                	
+	                case RIGHT: 
+	                	if (rowDiff == 0  && colDiff == 1) {
+	                		adjList.add(neighbor); 
+	                	}
+	                	break;
+	                	
+	                default:
+	                	break;
+	            }
+	        }
+	        return;
+	    }
+	    
+	    // If cell is a doorway, only connect in the direction it faces
+	    if (cell.isDoorway()) {
+	        switch (cell.getDoorDirection()) {
+	        
+	            case UP:    
+	            	if (rowDiff == -1 && colDiff == 0) {
+	            		adjList.add(neighbor); 
+	            	}
+	            	break;
+	            	
+	            case DOWN:  
+	            	if (rowDiff == 1  && colDiff == 0) {
+	            		adjList.add(neighbor); 
+	            	}
+	            	break;
+	            	
+	            case LEFT:  
+	            	if (rowDiff == 0  && colDiff == -1) {
+	            		adjList.add(neighbor); 
+	            	}
+	            	break;
+	            	
+	            case RIGHT: 
+	            	if (rowDiff == 0  && colDiff == 1) {
+	            		adjList.add(neighbor); 
+	            	}
+	            	break;
+	            
+	            default:
+	            	break;
+	        }
+	        
+	        // if cell is door and neighbor is room, then enter room 
+	        if (neighbor.isRoom() && !neighbor.isDoorway()) { 
+	            adjList.add(neighbor);                      
+	        }
+	        return;	        
+	        
+	    }
+	    
+	    // If cell is a room 
+	    if (cell.isRoom() && !cell.isDoorway()) {
+	        if (neighbor.isDoorway()) {                     
+	            adjList.add(neighbor); 
+	        }
+	        
+	        
+		    // If cell is a secret passage
+		    if (cell.getSecretPassage() != '\0') {
+		        BoardCell passageDest = getRoom(cell.getSecretPassage()).getCenterCell();
+		        if (passageDest != null) {
+		            adjList.add(passageDest);
+		        }
+		    }
+		    
+		    return;
+	    }
+	    
+	}
 
 	public void calcTargets(BoardCell startCell, int pathlength) {
 		/*
@@ -271,22 +442,14 @@ public class Board {
 		for (BoardCell adjCell : thisCell.getAdjList()) {
 			if (!visited.contains(adjCell)) { // Stops when adjCell is already in visited
 
-				if (!adjCell.isOccupied()) { // Stops when adjCell is a occupied place
-
-					if (adjCell.isRoom() ) {
-
-						targets.add(adjCell); // valid spot to land for a room (target)
-					} else {
-
-						visited.add(adjCell);
-
-						if (numSteps == 1) { 
-							targets.add(adjCell); // add as a target if numSteps is 1 (base case)
-						} else {
-							findAllTargets(adjCell, numSteps - 1); // recursive call and try until base case
-						}
-						visited.remove(adjCell); // remove adjCell from visited list
-					}
+				if (!adjCell.isOccupied() || adjCell.isRoom()) { // Stops when adjCell is a occupied place
+					visited.add(adjCell);
+				    if (numSteps == 1 || adjCell.isRoom()) {
+				        targets.add(adjCell);
+				    } else {
+				        findAllTargets(adjCell, numSteps - 1);
+				    }
+				    visited.remove(adjCell);
 				}
 			}
 		}
