@@ -242,12 +242,21 @@ public class Board {
 		return roomMap.get(initial);
 	}
 
-	public Set<BoardCell> getAdjList(int i, int j) {
-		return new HashSet<>();
+	public Set<BoardCell> getAdjList(int row, int col) {
+		return grid[row][col].getAdjList();
 	}
 
-	public void calcTargets(BoardCell cell, int i) {
-		targets = new HashSet<>();		
+	public void calcTargets(BoardCell startCell, int pathlength) {
+		/*
+		 *Set up for recursive function findAllTargets
+		 *clear target and visited list before calculating each time
+		 */
+		targets.clear();
+		visited.clear();
+
+		visited.add(startCell);
+		findAllTargets(startCell, pathlength);
+			
 	}
 	
 	public void findAllTargets(BoardCell thisCell, int numSteps) {

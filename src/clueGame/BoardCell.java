@@ -28,6 +28,7 @@ public class BoardCell {
 	private boolean roomLabel;
 	private boolean roomCenter;
 	private boolean isOccupied = false;
+	private boolean isRoom;
 
 	private char secretPassage;
 
@@ -110,4 +111,11 @@ public class BoardCell {
 		this.secretPassage = secretPassage;
 	}
 	
+	public boolean isRoom() {
+		return isRoom;
+	}
+
+	public void setRoom(boolean isRoom) {
+		this.isRoom = isRoom;
+	}
 }
