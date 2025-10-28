@@ -230,8 +230,8 @@ public class Board {
 		return numColumns;
 	}
 
-	public BoardCell getCell(int i, int j) {
-		return grid[i][j];
+	public BoardCell getCell(int row, int col) {
+		return grid[row][col];
 	}
 
 	public Room getRoom(BoardCell cell) {
@@ -248,6 +248,39 @@ public class Board {
 
 	public void calcTargets(BoardCell cell, int i) {
 		targets = new HashSet<>();		
+	}
+	
+	public void findAllTargets(BoardCell thisCell, int numSteps) {
+		/*
+		 * for each adjCell in adjacentCells
+			-- if already in visited list, skip rest of this
+			-- add adjCell to visited list
+			-- if numSteps == 1, add adjCell to Targets
+			-- else call findAllTargets() with adjCell, numSteps-1
+			-- remove adjCell from visited list
+		 */
+		for (BoardCell adjCell : thisCell.getAdjList()) {
+			if (!visited.contains(adjCell)) { // Stops when adjCell is already in visited
+
+				if (!adjCell.isOccupied()) { // Stops when adjCell is a occupied place
+
+					if (adjCell.isRoom() ) {
+
+						targets.add(adjCell); // valid spot to land for a room (target)
+					} else {
+
+						visited.add(adjCell);
+
+						if (numSteps == 1) { 
+							targets.add(adjCell); // add as a target if numSteps is 1 (base case)
+						} else {
+							findAllTargets(adjCell, numSteps - 1); // recursive call and try until base case
+						}
+						visited.remove(adjCell); // remove adjCell from visited list
+					}
+				}
+			}
+		}
 	}
 
 	public Set<BoardCell> getTargets() {
